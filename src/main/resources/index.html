@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Web Console</title>
+    <style>
+        body { font-family: monospace; background-color: #000; color: #0f0; }
+        #console { width: 100%; height: 90vh; overflow-y: auto; }
+        #commandInput { width: 100%; padding: 10px; background-color: #111; color: #0f0; border: none; }
+    </style>
+</head>
+<body>
+    <div id="console"></div>
+    <input id="commandInput" type="text" placeholder="Enter command...">
+    <script>
+        const ws = new WebSocket('ws://localhost:8080/ws');
+
+        ws.onmessage = (event) => {
+            const consoleDiv = document.getElementById('console');
+            consoleDiv.innerHTML += event.data + '<br>';
+            consoleDiv.scrollTop = consoleDiv.scrollHeight;
+        };
+
+        document.getElementById('commandInput').addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                ws.send(e.target.value);
+                e.target.value = '';
+            }
+        });
+    </script>
+</body>
+</html>
