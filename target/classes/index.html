@@ -3,31 +3,36 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Web Console</title>
-    <style>
-        body { font-family: monospace; background-color: #000; color: #0f0; }
-        #console { width: 100%; height: 90vh; overflow-y: auto; }
-        #commandInput { width: 100%; padding: 10px; background-color: #111; color: #0f0; border: none; }
-    </style>
+    <title>WebSocket Console</title>
 </head>
 <body>
-    <div id="console"></div>
-    <input id="commandInput" type="text" placeholder="Enter command...">
-    <script>
-        const ws = new WebSocket('ws://localhost:8080/ws');
+    <h1>WebSocket Console</h1>
+    <div>
+        <textarea id="output" rows="20" cols="100" readonly></textarea><br/>
+        <input type="text" id="input" placeholder="Type a command..."/>
+        <button onclick="sendMessage()">Send</button>
+    </div>
 
-        ws.onmessage = (event) => {
-            const consoleDiv = document.getElementById('console');
-            consoleDiv.innerHTML += event.data + '<br>';
-            consoleDiv.scrollTop = consoleDiv.scrollHeight;
+    <script>
+        const ws = new WebSocket("ws://" + window.location.host + "/console");
+
+        ws.onopen = function() {
+            document.getElementById("output").value += "Connected to the server\n";
         };
 
-        document.getElementById('commandInput').addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') {
-                ws.send(e.target.value);
-                e.target.value = '';
-            }
-        });
+        ws.onmessage = function(event) {
+            document.getElementById("output").value += event.data + "\n";
+        };
+
+        ws.onclose = function() {
+            document.getElementById("output").value += "Disconnected from the server\n";
+        };
+
+        function sendMessage() {
+            const input = document.getElementById("input");
+            ws.send(input.value);
+            input.value = '';
+        }
     </script>
 </body>
 </html>

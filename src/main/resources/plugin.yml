@@ -1,4 +1,7 @@
-name: WebConsolePlugin
-version: 1.0
+# src/main/resources/plugin.yml
+
+name: WebConsole
+version: 1.1-SNAPSHOT
 main: com.example.webconsole.WebConsolePlugin
 api-version: 1.21
+description: A simple example plugin for Minecraft.

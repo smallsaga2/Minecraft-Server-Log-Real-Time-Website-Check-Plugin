@@ -1,48 +1,27 @@
 package com.example.webconsole;
 
-import com.sun.net.httpserver.HttpServer;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import java.io.IOException;
-import java.io.OutputStream;
-import java.net.InetSocketAddress;
-
 public class WebConsolePlugin extends JavaPlugin {
-    private HttpServer server;
+
+    private WebSocketServer webSocketServer;
 
     @Override
     public void onEnable() {
-        getLogger().info("WebConsolePlugin has been enabled!");
-        startWebServer();
+        getLogger().info("WebConsole Plugin enabled!");
+
+        // WebSocket 서버 시작
+        webSocketServer = new WebSocketServer(8080); // 포트 번호 8080으로 설정
+        webSocketServer.start();
     }
 
     @Override
     public void onDisable() {
-        getLogger().info("WebConsolePlugin has been disabled!");
-        stopWebServer();
-    }
+        getLogger().info("WebConsole Plugin disabled!");
 
-    private void startWebServer() {
-        try {
-            server = HttpServer.create(new InetSocketAddress(8080), 0);
-            server.createContext("/", exchange -> {
-                String response = "<html><body>Welcome to the Web Console</body></html>";
-                exchange.sendResponseHeaders(200, response.getBytes().length);
-                OutputStream os = exchange.getResponseBody();
-                os.write(response.getBytes());
-                os.close();
-            });
-            server.start();
-            getLogger().info("Web server started on port 8080");
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    private void stopWebServer() {
-        if (server != null) {
-            server.stop(0);
-            getLogger().info("Web server stopped");
+        // WebSocket 서버 종료
+        if (webSocketServer != null) {
+            webSocketServer.stop();
         }
     }
 }
