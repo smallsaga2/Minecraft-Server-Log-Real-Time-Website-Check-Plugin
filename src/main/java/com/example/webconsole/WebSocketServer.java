@@ -8,6 +8,7 @@ import javax.websocket.OnOpen;
 import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -31,12 +32,20 @@ public class WebSocketServer {
         try {
             server = HttpServer.create(new InetSocketAddress(port), 0);
             server.createContext("/", httpExchange -> {
-                // index.html 파일을 읽어와 클라이언트에 응답으로 보냄
-                Path filePath = Paths.get("src/resources/index.html");
-                byte[] response = Files.readAllBytes(filePath);
-                
-                httpExchange.sendResponseHeaders(200, response.length);
-                httpExchange.getResponseBody().write(response);
+                // 수정된 경로로 리소스 파일을 읽어옴
+                InputStream inputStream = getClass().getClassLoader().getResourceAsStream("index.html");
+
+                if (inputStream != null) {
+                    byte[] response = inputStream.readAllBytes();
+                    httpExchange.sendResponseHeaders(200, response.length);
+                    httpExchange.getResponseBody().write(response);
+                } else {
+                    // 파일을 찾지 못한 경우
+                    String errorMessage = "404 Not Found: index.html file is missing";
+                    httpExchange.sendResponseHeaders(404, errorMessage.length());
+                    httpExchange.getResponseBody().write(errorMessage.getBytes());
+                }
+
                 httpExchange.close();
             });
             server.start();
