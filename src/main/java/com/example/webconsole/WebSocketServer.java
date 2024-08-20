@@ -8,6 +8,9 @@ import javax.websocket.OnOpen;
 import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.net.InetSocketAddress;
 import java.util.Collections;
 import java.util.HashSet;
@@ -28,9 +31,12 @@ public class WebSocketServer {
         try {
             server = HttpServer.create(new InetSocketAddress(port), 0);
             server.createContext("/", httpExchange -> {
-                String response = "WebSocket server is running";
-                httpExchange.sendResponseHeaders(200, response.length());
-                httpExchange.getResponseBody().write(response.getBytes());
+                // index.html 파일을 읽어와 클라이언트에 응답으로 보냄
+                Path filePath = Paths.get("src/resources/index.html");
+                byte[] response = Files.readAllBytes(filePath);
+                
+                httpExchange.sendResponseHeaders(200, response.length);
+                httpExchange.getResponseBody().write(response);
                 httpExchange.close();
             });
             server.start();
