@@ -8,11 +8,10 @@ import javax.websocket.OnOpen;
 import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
 import java.io.IOException;
-import java.io.InputStream;
+import java.net.InetSocketAddress;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.net.InetSocketAddress;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
@@ -32,20 +31,16 @@ public class WebSocketServer {
         try {
             server = HttpServer.create(new InetSocketAddress(port), 0);
             server.createContext("/", httpExchange -> {
-                // 수정된 경로로 리소스 파일을 읽어옴
-                InputStream inputStream = getClass().getClassLoader().getResourceAsStream("index.html");
-
-                if (inputStream != null) {
-                    byte[] response = inputStream.readAllBytes();
-                    httpExchange.sendResponseHeaders(200, response.length);
-                    httpExchange.getResponseBody().write(response);
+                Path filePath = Paths.get("src\\main\\resources\\index.html"); // index.html 파일 경로
+                if (Files.exists(filePath)) {
+                    byte[] fileBytes = Files.readAllBytes(filePath);
+                    httpExchange.sendResponseHeaders(200, fileBytes.length);
+                    httpExchange.getResponseBody().write(fileBytes);
                 } else {
-                    // 파일을 찾지 못한 경우
-                    String errorMessage = "404 Not Found: index.html file is missing";
-                    httpExchange.sendResponseHeaders(404, errorMessage.length());
-                    httpExchange.getResponseBody().write(errorMessage.getBytes());
+                    String response = "404 Not Found: index.html file is missing";
+                    httpExchange.sendResponseHeaders(404, response.length());
+                    httpExchange.getResponseBody().write(response.getBytes());
                 }
-
                 httpExchange.close();
             });
             server.start();
