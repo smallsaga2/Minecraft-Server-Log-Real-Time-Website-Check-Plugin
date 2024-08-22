@@ -4,24 +4,28 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 public class WebConsolePlugin extends JavaPlugin {
 
-    private WebSocketServer webSocketServer;
+    private HttpServerApp httpServer;
 
     @Override
     public void onEnable() {
         getLogger().info("WebConsole Plugin enabled!");
 
-        // WebSocket 서버 시작
-        webSocketServer = new WebSocketServer(8080); // 포트 번호 8080으로 설정
-        webSocketServer.start();
+        // HTTP 서버 시작
+        httpServer = new HttpServerApp(8080); // HTTP 서버 포트 8080
+        httpServer.start();
+
+        // WebSocket 서버는 @ServerEndpoint에 의해 자동으로 시작됨
     }
 
     @Override
     public void onDisable() {
         getLogger().info("WebConsole Plugin disabled!");
 
-        // WebSocket 서버 종료
-        if (webSocketServer != null) {
-            webSocketServer.stop();
+        // HTTP 서버 종료
+        if (httpServer != null) {
+            httpServer.stop();
         }
+
+        // WebSocket 서버는 별도로 종료 메소드가 필요할 수 있음 (보통 자동 관리됨)
     }
 }

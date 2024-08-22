@@ -15,23 +15,31 @@
 
     <script>
         const ws = new WebSocket("ws://" + window.location.host + "/console");
-
+    
         ws.onopen = function() {
             document.getElementById("output").value += "Connected to the server\n";
         };
-
+    
         ws.onmessage = function(event) {
             document.getElementById("output").value += event.data + "\n";
         };
-
+    
         ws.onclose = function() {
             document.getElementById("output").value += "Disconnected from the server\n";
         };
-
+    
+        ws.onerror = function(error) {
+            console.error('WebSocket Error: ', error);
+        };
+    
         function sendMessage() {
             const input = document.getElementById("input");
-            ws.send(input.value);
-            input.value = '';
+            if (ws.readyState === WebSocket.OPEN) {
+                ws.send(input.value);
+                input.value = '';
+            } else {
+                console.error('WebSocket is not open. ReadyState: ' + ws.readyState);
+            }
         }
     </script>
 </body>
