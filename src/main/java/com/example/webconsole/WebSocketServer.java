@@ -1,5 +1,9 @@
 package com.example.webconsole;
 
+import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.servlet.ServletContextHandler;
+import org.eclipse.jetty.websocket.jsr356.server.deploy.WebSocketServerContainerInitializer;
+
 import javax.websocket.OnClose;
 import javax.websocket.OnMessage;
 import javax.websocket.OnOpen;
@@ -17,13 +21,54 @@ public class WebSocketServer {
 
     private static Set<Session> sessions = Collections.synchronizedSet(new HashSet<>());
     private static final Logger logger = Logger.getLogger(WebSocketServer.class.getName());
+    private Server server;
+
+    public void start() {
+        try {
+            server = new Server(8081); // WebSocket 서버 포트를 8081로 설정
+
+            // ServletContextHandler 생성
+            ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
+            context.setContextPath("/");
+            server.setHandler(context);
+
+            // WebSocket 서버 컨테이너 초기화
+            WebSocketServerContainerInitializer.configureContext(context).addEndpoint(WebSocketServer.class);
+
+            // WebSocket 서버 시작
+            server.start();
+            logger.info("WebSocket server started on port 8081");
+
+            // WebSocket 서버를 블록 없이 비동기적으로 실행
+            new Thread(() -> {
+                try {
+                    server.join();
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt(); // 스레드 인터럽트 상태를 다시 설정
+                    logger.log(Level.SEVERE, "WebSocket server interrupted", e);
+                }
+            }).start();
+            
+        } catch (Exception e) {
+            logger.log(Level.SEVERE, "Failed to start WebSocket server", e);
+        }
+    }
+
+    public void stop() {
+        try {
+            if (server != null) {
+                server.stop();
+                logger.info("WebSocket server stopped.");
+            }
+        } catch (Exception e) {
+            logger.log(Level.SEVERE, "Failed to stop WebSocket server", e);
+        }
+    }
 
     @OnOpen
     public void onOpen(Session session) {
         sessions.add(session);
-        if (logger.isLoggable(Level.INFO)) {
-            logger.info("New WebSocket connection established: " + session.getId());
-        }
+        logger.info("New WebSocket connection established: " + session.getId());
         try {
             session.getBasicRemote().sendText("Connected to WebSocket server");
         } catch (IOException e) {
@@ -42,9 +87,7 @@ public class WebSocketServer {
     @OnClose
     public void onClose(Session session) {
         sessions.remove(session);
-        if (logger.isLoggable(Level.INFO)) {
-            logger.info("WebSocket connection closed: " + session.getId());
-        }
+        logger.info("WebSocket connection closed: " + session.getId());
     }
 
     private void broadcast(String message) {
